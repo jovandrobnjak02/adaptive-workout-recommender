@@ -1,2 +1,2 @@
-(ns adaptive-workout-recommender-recommender.core)
+(ns adaptive-workout-recommender.core)
 
