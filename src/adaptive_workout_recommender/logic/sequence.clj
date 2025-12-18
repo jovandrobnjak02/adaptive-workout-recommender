@@ -1,6 +1,6 @@
 (ns adaptive-workout-recommender.logic.sequence)
 
-(def template-to-muscles
+(def template->muscles
   {:upper-a     [:chest :back :shoulders :arms]
    :upper-b     [:chest :back :shoulders :arms]
    :lower-a     [:quads :hamstrings :glutes :calves]
