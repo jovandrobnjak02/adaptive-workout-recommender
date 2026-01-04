@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    container_name: adaptive_workout_db
+    environment:
+      POSTGRES_DB: adaptive_workout
+      POSTGRES_USER: awr
+      POSTGRES_PASSWORD: awr_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - awr_pgdata:/var/lib/postgresql/data
+      - ./resources/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U awr -d adaptive_workout"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  awr_pgdata:
