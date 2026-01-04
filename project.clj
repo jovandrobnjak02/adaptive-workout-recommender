@@ -5,7 +5,8 @@
 
   :dependencies
   [[org.clojure/clojure "1.12.2"]
-   [midje/midje "1.10.9"]]
+   [com.github.seancorfield/next.jdbc "1.3.955"]
+   [org.postgresql/postgresql "42.7.4"]]
 
   :plugins
   [[lein-midje "3.2.1"]]
