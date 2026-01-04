@@ -89,3 +89,7 @@ CREATE INDEX IF NOT EXISTS idx_workouts_user_generated
 
 CREATE INDEX IF NOT EXISTS idx_workout_exercises_workout
   ON workout_exercises(workout_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_exercises_name ON exercises(name);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_name ON users(name);
