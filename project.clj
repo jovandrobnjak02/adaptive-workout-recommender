@@ -5,13 +5,15 @@
 
   :dependencies
   [[org.clojure/clojure "1.12.2"]
+   [midje/midje "1.10.9"]
    [com.github.seancorfield/next.jdbc "1.3.955"]
-   [org.postgresql/postgresql "42.7.4"] [org.clojure/data.json "2.5.0"]]
+   [org.postgresql/postgresql "42.7.4"]
+   [org.clojure/data.json "2.5.0"]]
 
   :plugins
-  [[lein-midje "3.2.1"]]
+  [[lein-midje "3.2.2"]]
 
   :test-paths ["test"]
 
-  :repl-options
-  {:init-ns adaptive-workout-recommender.core})
+  :main adaptive-workout-recommender.core
+  :repl-options {:init-ns adaptive-workout-recommender.core})

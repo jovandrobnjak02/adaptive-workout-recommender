@@ -3,6 +3,18 @@
 -- PostgreSQL
 -- =========================================
 
+SET client_min_messages TO WARNING;
+
+-- 1) DROP in a safe order (CASCADE handles dependencies)
+DROP TABLE IF EXISTS model_weights CASCADE;
+DROP TABLE IF EXISTS logs CASCADE;
+DROP TABLE IF EXISTS readiness CASCADE;
+DROP TABLE IF EXISTS workout_exercises CASCADE;
+DROP TABLE IF EXISTS workouts CASCADE;
+DROP TABLE IF EXISTS exercises CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
 -- USERS
 CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY,

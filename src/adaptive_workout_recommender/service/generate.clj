@@ -48,7 +48,7 @@
 
                            (db/exec! tx
                                      ["INSERT INTO readiness (workout_id, stress, fatigue, sleep, nutrition)
-                  VALUES ($1, $2, $3, $4, $5)"
+                                      VALUES (?, ?, ?, ?, ?)"
                                       workout-id
                                       (:stress readiness)
                                       (:fatigue readiness)
