@@ -3,13 +3,17 @@
     [next.jdbc :as jdbc]
     [next.jdbc.result-set :as rs]))
 
+(defn- getenv
+  [k default]
+  (or (System/getenv k) default))
+
 (def default-db
   {:dbtype "postgresql"
-   :dbname "adaptive_workout"
-   :host "localhost"
-   :port 5432
-   :user "awr"
-   :password "awr_pass"})
+   :dbname (getenv "DB_NAME" "adaptive_workout")
+   :host   (getenv "DB_HOST" "localhost")
+   :port   (Integer/parseInt (getenv "DB_PORT" "5432"))
+   :user   (getenv "DB_USER" "awr")
+   :password (getenv "DB_PASSWORD" "awr_pass")})
 
 (defn datasource
   ([] (datasource default-db))

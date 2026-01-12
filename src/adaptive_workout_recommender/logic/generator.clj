@@ -43,8 +43,6 @@
                  (load/recommend-load
                    {:last-load (get last-load-by-exercise ex-id)
                     :model-weights (get weights-by-exercise ex-id)
-                    ;; IMPORTANT: use modifiers or raw readiness depending on how your
-                    ;; feature-vector is defined. Here we pass raw readiness.
                     :readiness readiness
                     :days-since-last (get days-since-last-by-exercise ex-id 999)}
                    reps)]]

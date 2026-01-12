@@ -9,7 +9,6 @@
     [adaptive-workout-recommender.persistence.db :as db]))
 
 (defn- db-exercise->domain
-  "Convert a DB exercise row into the domain shape used by the generator."
   [e]
   {:exercise/id (:id e)
    :name (:name e)
@@ -18,8 +17,6 @@
    :difficulty (keyword (:difficulty e))})
 
 (defn generate-and-save-workout!
-  "Loads required inputs, generates workout, persists it (workouts + workout_exercises + readiness),
-   returns workout map including :workout-id."
   [ds {:keys [user-id profile readiness]}]
   (jdbc/with-transaction [tx ds]
                          (let [exercise-rows (ex-repo/list-exercises tx)

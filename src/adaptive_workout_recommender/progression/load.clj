@@ -11,7 +11,7 @@
   [{:keys [last-load model-weights readiness days-since-last]} reps]
   (if (nil? last-load)
     0
-    (let [weights (or model-weights r/default-weights)   ;; <<< THIS IS THE KEY CHANGE
+    (let [weights (or model-weights r/default-weights)
           x (features/feature-vector
               (assoc readiness
                 :last-load last-load

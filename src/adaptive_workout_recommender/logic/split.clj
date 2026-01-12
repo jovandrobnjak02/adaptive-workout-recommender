@@ -7,7 +7,6 @@
    :bro         [:chest :back :legs :shoulders :arms :legs-2]})
 
 (defn next-template
-  "Returns the next workout template keyword."
   [split last-index]
   (let [sequence (get split-sequences split)
         next-idx (mod (inc last-index) (count sequence))]

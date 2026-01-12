@@ -1,9 +1,5 @@
 (ns adaptive-workout-recommender.logic.volume)
 
-;;MVP rule:
-;; Random + constraints
-;; Later: replace with smarter logic
-
 (defn prescription
   [exercise experience volume-multiplier]
   (let [base-sets (if (= experience :beginner) 2 3)

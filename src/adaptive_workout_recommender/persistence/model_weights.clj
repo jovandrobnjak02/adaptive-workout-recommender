@@ -12,7 +12,6 @@
     (into {}
           (map (fn [{:keys [exercise_id weights]}]
                  [exercise_id
-                  ;; weights is jsonb; next.jdbc returns PGobject; coerce to string
                   (json/read-str (str weights))])
                rows))))
 

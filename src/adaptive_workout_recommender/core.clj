@@ -6,10 +6,6 @@
     [adaptive-workout-recommender.service.generate :as gen-svc]
     [adaptive-workout-recommender.persistence.exercises :as ex-repo]))
 
-;; -------------------------
-;; Small CLI helpers
-;; -------------------------
-
 (defn- prompt
   [s]
   (print s)
@@ -80,10 +76,6 @@
   []
   (println "----------------------------------------"))
 
-;; -------------------------
-;; Printing
-;; -------------------------
-
 (defn- print-workout
   [exercise-by-id {:keys [workout-id template sequence-index exercises]}]
   (println)
@@ -114,12 +106,7 @@
   (println "Tip: After training, choose option 2 to log what you actually did.")
   (println))
 
-;; -------------------------
-;; DB queries for default user/profile
-;; -------------------------
-
 (defn- fetch-default-user+profile
-  "Returns {:user-id ... :profile {...}} or nil."
   [ds]
   (let [row (first (db/query! ds
                               ["SELECT u.id AS user_id,
@@ -138,13 +125,7 @@
                  :profile/split (keyword (:split row))
                  :profile/days-per-week (:days_per_week row)}})))
 
-;; -------------------------
-;; Logging performed sets (simple MVP)
-;; -------------------------
-
 (defn- log-workout!
-  "Prompts user to log performed sets for the generated workout exercises.
-   Writes rows to logs table. (No regression-weight update yet.)"
   [ds user-id exercise-by-id workout]
   (let [workout-id (:workout-id workout)]
     (println)

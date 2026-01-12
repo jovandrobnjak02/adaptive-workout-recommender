@@ -1,5 +1,5 @@
 -- =========================================
--- Seed default user + profile (MVP)
+-- Seed default user + profile
 -- =========================================
 
 INSERT INTO users (name)

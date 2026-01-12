@@ -17,5 +17,20 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build: .
+    container_name: adaptive_workout_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: adaptive_workout
+      DB_USER: awr
+      DB_PASSWORD: awr_pass
+    stdin_open: true
+    tty: true
+
 volumes:
   awr_pgdata:

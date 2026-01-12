@@ -3,7 +3,6 @@
     [adaptive-workout-recommender.persistence.db :as db]))
 
 (defn last-sequence-index
-  "Returns last used sequence_index for a user, or -1 if none."
   [ds user-id]
   (let [rows (db/query! ds
                         ["SELECT sequence_index
@@ -14,7 +13,6 @@
     (or (:sequence_index (first rows)) -1)))
 
 (defn create-workout!
-  "Inserts workout row and returns created workout id."
   [ds {:keys [user-id template sequence-index]}]
   (let [res (db/query! ds
                        ["INSERT INTO workouts (user_id, template, sequence_index)
@@ -24,7 +22,6 @@
     (:id (first res))))
 
 (defn insert-workout-exercises!
-  "Batch insert prescribed exercises for a workout."
   [ds workout-id prescribed]
   (doseq [{:keys [exercise-id sets reps target-load rest-seconds]} prescribed]
     (db/exec! ds
