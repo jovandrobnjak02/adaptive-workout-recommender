@@ -1,202 +1,220 @@
-# Adaptive Workout Recommender (Clojure)
+# Adaptive Workout Recommender (MVP)
 
-## Overview
+A terminal-based workout generation system that adapts exercise selection, volume, and load recommendations based on user readiness and historical training data.
 
-This project is an **adaptive workout recommender system** implemented in **Clojure**, designed initially as a **terminal-based backend MVP**. The system generates daily workouts based on a user's training experience, chosen split, workout history, and daily readiness inputs (stress, fatigue, sleep, nutrition).
-
-The MVP focuses on being **scientifically reasonable, deterministic, and explainable**, while laying a clean foundation for future intelligence, automation, and machine-learning-driven personalization.
+> **Design details, algorithms, and future plans are documented in the project Wiki.**
 
 ---
 
-## 1. MVP Functionalities
+## What This Project Is
 
-### 1.1 User & Profile Configuration
+This project is an **MVP (Minimum Viable Product)** built primarily for learning, experimentation, and iterative design. It focuses on:
 
-* Create and select a user profile (no full auth in MVP)
-* User profile includes:
+* Clean domain modeling
+* Clear separation of concerns (CLI, service, logic, persistence)
+* A simple but explainable adaptive training algorithm
 
-  * Experience level: **Beginner / Intermediate / Advanced**
-  * Training frequency:
-
-    * 3 days → Full Body
-    * 4 days → Upper / Lower
-    * 6 days → PPL or Bro Split
-  * Chosen split type (where applicable)
+It is **not** intended to be a production-ready fitness application.
 
 ---
 
-### 1.2 Workout Splits & Scheduling
+## Current Features (MVP Scope)
 
-#### Supported Splits
+* Interactive **terminal-based CLI**
+* Single default user with configurable profile
+* Profile configuration:
 
-* **3 Days / Week**: Full Body **A / B / C** rotation
-* **4 Days / Week**: **Upper A / Lower A / Upper B / Lower B**
-* **6 Days / Week**:
+    * Experience level (beginner / intermediate / advanced)
+    * Training frequency and split
+* Daily workout generation based on:
 
-  * **PPL**: Push / Pull / Legs / Push / Pull / Legs
-  * **Bro Split**: Chest / Back / Legs / Shoulders / Arms / Legs (2)
+    * Training split and sequence
+    * User readiness (stress, fatigue, sleep, nutrition)
+    * Exercise difficulty
+* Exercise selection from a curated catalog
+* Volume prescription:
 
-#### Scheduling Logic
+    * Sets, reps, rest time
+* Load recommendations:
 
-* The system always generates the **next workout in sequence**
-* Missed days are ignored in MVP (no rescheduling logic)
-* Each login generates **one workout for that day only**
+    * Based on previous training history
+    * Progressive overload with safety clamping
+* Workout logging:
 
----
-
-### 1.3 Exercise Catalog
-
-Exercises are stored in the database with the following attributes:
-
-* Name
-* Main muscle group
-* Secondary muscle group
-* Difficulty level (Beginner / Intermediate / Advanced)
-
-Notes:
-
-* Exercises hitting the same muscle group are interchangeable
-* Exercise substitutions are treated as separate exercises
-* No equipment, injury, or mobility constraints in MVP
+    * Reps and load per set
+* PostgreSQL persistence
+* Fully Dockerized development environment
 
 ---
 
-### 1.4 Daily Readiness Inputs
+## Tech Stack
 
-Before generating a workout, the user provides:
+### Language & Runtime
 
-* **Stress**: 1–10
-* **Fatigue**: 1–10
-* **Sleep**: 1–8 hours
-* **Nutrition**: Deficit / Neutral / Bulk
+* **Clojure** (Leiningen)
+* **JDK 21**
 
-These inputs affect:
+### Backend & Persistence
 
-* Total volume (sets)
-* Intensity (target load)
-* Exercise difficulty preference (easier movements on bad days)
+* **PostgreSQL**
+* **next.jdbc** – SQL access layer
 
----
+### Tooling & Dev Experience
 
-### 1.5 Workout Generation
-
-Each generated workout includes:
-
-* Exercise list
-* Sets per exercise (2–3)
-* Repetition targets (6–8 / 6–10 / 8–10 depending on context)
-* Target load per exercise
-* Rest time per exercise (90–180s based on difficulty)
-
-Workout structure is kept **scientifically reasonable but simple**.
+* **Docker & Docker Compose**
+* **Midje** – testing framework
 
 ---
 
-### 1.6 Load Recommendation & Progression (ML-lite)
+## Project Dependencies
 
-The MVP uses an **explainable progression model**, not full machine learning:
+Key dependencies used in this project:
 
-* Track performance history (sets, reps, load)
-* Estimate **e1RM** (e.g., Epley formula) per exercise
-* Generate target loads based on:
+```clojure
+[org.clojure/clojure "1.12.2"]
+[com.github.seancorfield/next.jdbc "1.3.955"]
+[org.postgresql/postgresql "42.7.4"]
+[org.clojure/data.json "2.5.0"]
+```
 
-  * Desired rep range
-  * Latest e1RM
-  * Daily readiness modifiers
-  * Nutrition state
+Development / testing:
 
-#### First-Time Exercises
-
-* If no history exists for an exercise:
-
-  * Target load is set to **0**
-  * User is instructed to choose a challenging weight within the rep range
+```clojure
+[midje/midje "1.10.9"]
+```
 
 ---
 
-### 1.7 Workout Logging
+## Quick Start (Docker – Recommended)
 
-* Users log:
+### Requirements
 
-  * Exercise
-  * Sets
-  * Reps
-  * Load
-* Logged data is stored for future progression and adaptation
+* Docker
+* Docker Compose
 
----
+### 1. Start the database
 
-### 1.8 Technical Scope (MVP)
+```bash
+  docker compose up -d db
+```
 
-* Language: **Clojure**
-* Database: **SQLite**
-* Interface: **Terminal / CLI**
-* Architecture: Pure functional core + IO boundaries
+### 2. Run the app interactively
 
----
+```bash
+  docker compose run --rm app
+```
 
-## 2. Future Improvements & Planned Extensions
-
-### 2.1 Training Intelligence & Adaptation
-
-* Missed-day adaptation (auto-shift or reschedule workouts)
-* Auto-deload detection (performance drop over multiple sessions)
-* Volume landmarks per muscle group (MEV / MAV / MRV)
-* Smarter fatigue management across week
+You should see an interactive terminal menu allowing you to generate and log workouts.
 
 ---
 
-### 2.2 Exercise & User Constraints
+## Resetting the Database (Development)
 
-* Equipment availability (home gym vs commercial gym)
-* Injury and movement restrictions
-* Exercise substitutions and equivalents
-* Mobility and stability considerations
+The database is intentionally designed to be easy to reset during development.
+
+To fully reset and reseed everything:
+
+```bash
+    docker compose down -v
+    docker compose up -d db
+```
+
+This will:
+
+* Drop all tables
+* Recreate the schema
+* Seed exercises
+* Seed the default user and profile
+
+**This is destructive and intended only for local development.**
+
+---
+## Using the Application
+
+Once the application is running, you will interact with it entirely through the terminal.
+
+### Main Menu
+
+At startup, the application presents a simple menu:
+
+- Generate today’s workout
+- Log the last generated workout
+- Exit
+
+
+### Generating a Workout
+
+When generating a workout, the system asks for a short readiness check-in:
+
+- **Stress level** (1–10)
+- **Fatigue level** (1–10)
+- **Sleep duration** (hours)
+- **Nutrition status** (`deficit` / `neutral` / `bulk`)
+
+Based on this input, the system:
+
+- Selects appropriate exercises for the day
+- Adjusts training volume and difficulty
+- Recommends training loads when sufficient history exists
+
+The generated workout is immediately saved to the database.
+
+### Logging a Workout
+
+After completing your training session, choose **Log the last generated workout**.
+
+For each exercise and set, you will be prompted to enter:
+
+- Repetitions performed
+- Load used
+
+This data is stored and later used to improve future load recommendations.
 
 ---
 
-### 2.3 Readiness & Feedback
+## Typical Usage Flow
 
-* RPE / RIR tracking per set
-* Soreness tracking
-* Subjective workout feedback ("too easy / too hard")
-* Recovery score aggregation
+1. Start the application
+2. Generate today’s workout
+3. Train
+4. Log the performed workout
+5. Repeat on the next training day
 
----
+Over time, the system adapts its recommendations based on logged performance.
 
-### 2.4 Programming Features
 
-* Warm-up sets and ramping logic
-* Tempo prescriptions
-* Supersets / giant sets
-* Time-capped workouts
-* Auto-regulated rest times
+## Project Structure (High Level)
 
----
-
-### 2.5 Machine Learning (Post-MVP)
-
-* Learned load progression models across users
-* Exercise recommendation optimization
-* User clustering by response to volume/intensity
-* Personalized fatigue and recovery prediction
-
----
-
-### 2.6 LLM & UX Enhancements
-
-* Natural-language workout explanations
-* Coaching-style feedback and motivation
-* Automatic note generation
-* Conversational workout adjustments
+```
+src/
+  adaptive_workout_recommender/
+    core.clj              ;; CLI entry point
+    service/              ;; Use‑case orchestration
+    logic/                ;; Pure workout generation logic
+    progression/          ;; Load progression & regression
+    persistence/          ;; Database access
+resources/
+  migrations/             ;; DB reset & seed scripts
+```
 
 ---
 
-### 2.7 Platform & Product
+## Project Status & Limitations
 
-* REST / GraphQL API
-* Web and mobile frontends
-* Multi-user authentication
-* Cloud database support
-* Exportable workout plans
+This MVP intentionally omits:
 
+* Authentication / multiple users
+* Web or mobile UI
+* Injury or equipment constraints
+* RIR tracking
+* Deload logic
+* Missed workout adaptation
+* Periodization blocks
+
+These are documented as future improvements in the Wiki.
+
+---
+
+## License
+
+EPL‑2.0 OR GPL‑2.0‑or‑later WITH Classpath‑exception‑2.0
