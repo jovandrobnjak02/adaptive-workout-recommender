@@ -133,7 +133,7 @@ This will:
 
 Once the application is running, you will interact with it entirely through the terminal.
 
-# Main Menu
+### Main Menu
 
 At startup, the application presents a simple menu:
 
@@ -142,7 +142,7 @@ At startup, the application presents a simple menu:
 - Exit
 
 
-# Generating a Workout
+### Generating a Workout
 
 When generating a workout, the system asks for a short readiness check-in:
 
@@ -159,7 +159,7 @@ Based on this input, the system:
 
 The generated workout is immediately saved to the database.
 
-# Logging a Workout
+### Logging a Workout
 
 After completing your training session, choose **Log the last generated workout**.
 
