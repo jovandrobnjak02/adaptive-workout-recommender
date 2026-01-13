@@ -4,8 +4,8 @@
     [adaptive-workout-recommender.progression.regression :as r]))
 
 (defn clamp
-  [x min max]
-  (-> x (max min) (min max)))
+  [x minv maxv]
+  (-> x (clojure.core/max minv) (clojure.core/min maxv)))
 
 (defn recommend-load
   [{:keys [last-load model-weights readiness days-since-last]} reps]

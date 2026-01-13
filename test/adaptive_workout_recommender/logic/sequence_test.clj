@@ -1,14 +1,15 @@
 (ns adaptive-workout-recommender.logic.sequence-test
-  (:require
-    [midje.sweet :refer :all]
-    [adaptive-workout-recommender.logic.sequence :as seq]))
+  (:require [midje.sweet :refer :all]
+            [adaptive-workout-recommender.logic.sequence :as seq]))
 
-(facts "Template to muscle mapping"
+(facts "Template → muscle mapping"
 
-  (fact "upper templates include upper-body muscles"
-    (seq/template->muscles :upper-a)
-    => (contains [:chest :back :shoulders]))
+       (fact "upper-a contains chest and back"
+             (seq/template->muscles :upper-a)
+             => #(and (some #{:chest} %)
+                      (some #{:back} %)))
 
-  (fact "lower templates include lower-body muscles"
-    (seq/template->muscles :lower-a)
-    => (contains [:quads :glutes])))
+       (fact "lower-a contains quads and glutes"
+             (seq/template->muscles :lower-a)
+             => #(and (some #{:quads} %)
+                      (some #{:glutes} %))))

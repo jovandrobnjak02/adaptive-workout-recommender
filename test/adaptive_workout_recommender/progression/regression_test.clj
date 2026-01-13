@@ -1,14 +1,12 @@
-(ns adaptive-workout-recommender.progression.e1rm-test
-  (:require
-   [midje.sweet :refer :all]
-   [adaptive-workout-recommender.progression.e1rm :as e1rm]))
+(ns adaptive-workout-recommender.progression.regression-test
+  (:require [midje.sweet :refer :all]
+            [adaptive-workout-recommender.progression.regression :as r]))
 
-(facts "E1RM calculations"
+(facts "Regression math"
 
-  (fact "Epley formula works"
-    (e1rm/epley 100 5)
-    => (roughly 116.6 0.1))
+       (fact "predict is dot product"
+             (r/predict [1 2 3] [10 10 10]) => 60)
 
-  (fact "target load scales with intensity"
-    (e1rm/target-load 120 8 1.0)
-    => (roughly 96 2)))
+       (fact "update-weights moves weights toward target"
+             ;; pred=0, err=10, lr=0.1 → update = 0.1*10*features = 1*features
+             (r/update-weights [0 0] [1 2] 10 0.1) => [1.0 2.0]))
