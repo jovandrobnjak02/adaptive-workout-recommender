@@ -4,8 +4,8 @@
 -- =========================================
 
 SET client_min_messages TO WARNING;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- 1) DROP in a safe order (CASCADE handles dependencies)
 DROP TABLE IF EXISTS model_weights CASCADE;
 DROP TABLE IF EXISTS logs CASCADE;
 DROP TABLE IF EXISTS readiness CASCADE;
@@ -17,9 +17,11 @@ DROP TABLE IF EXISTS users CASCADE;
 
 -- USERS
 CREATE TABLE IF NOT EXISTS users (
-  id BIGSERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+ id BIGSERIAL PRIMARY KEY,
+ name TEXT NOT NULL,
+ email TEXT NOT NULL,
+ password_hash TEXT NOT NULL,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- PROFILES
@@ -83,7 +85,6 @@ CREATE TABLE IF NOT EXISTS logs (
 );
 
 -- MODEL_WEIGHTS (REGRESSION WEIGHTS PER USER+EXERCISE)
--- Store weights as JSON array: [0,0.01,0,0,0,0,0]
 CREATE TABLE IF NOT EXISTS model_weights (
   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   exercise_id BIGINT NOT NULL REFERENCES exercises(id) ON DELETE RESTRICT,
@@ -105,3 +106,4 @@ CREATE INDEX IF NOT EXISTS idx_workout_exercises_workout
 CREATE UNIQUE INDEX IF NOT EXISTS uq_exercises_name ON exercises(name);
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_users_name ON users(name);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_email ON users(email);

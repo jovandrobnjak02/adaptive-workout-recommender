@@ -8,7 +8,8 @@
    [midje/midje "1.10.9"]
    [com.github.seancorfield/next.jdbc "1.3.955"]
    [org.postgresql/postgresql "42.7.4"]
-   [org.clojure/data.json "2.5.0"]]
+   [org.clojure/data.json "2.5.0"]
+   [buddy/buddy-hashers "2.0.167"]]
 
   :plugins
   [[lein-midje "3.2.2"]]
