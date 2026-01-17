@@ -3,7 +3,7 @@
 -- =========================================
 
 INSERT INTO users (name, email, password_hash)
-VALUES ('Arnold Schwarzenegger', 'goat@governor.com', crypt('goat', gen_salt('bf')))
+VALUES ('Arnold Schwarzenegger', 'goat@governor.com', crypt('12345678', gen_salt('bf')))
     ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO profiles (user_id, experience, days_per_week, split)
