@@ -240,7 +240,6 @@
           (recur)))))
 
 (defn- configure-profile!
-  "Prompts the user and creates a profile row in DB. Returns the profile map in generator format."
   [ds user-id]
   (println "\nLet’s set up your training profile.")
   (let [experience (prompt-experience)
