@@ -21,27 +21,23 @@ It is **not** intended to be a production-ready fitness application.
 ## Current Features (MVP Scope)
 
 * Interactive **terminal-based CLI**
-* Single default user with configurable profile
+* User registration and login
+* Per-user training profiles
 * Profile configuration:
-
-    * Experience level (beginner / intermediate / advanced)
-    * Training frequency and split
+  * Experience level (beginner / intermediate / advanced)
+  * Training frequency and split
 * Daily workout generation based on:
-
-    * Training split and sequence
-    * User readiness (stress, fatigue, sleep, nutrition)
-    * Exercise difficulty
+  * Training split and sequence
+  * User readiness (stress, fatigue, sleep, nutrition)
+  * Exercise difficulty
 * Exercise selection from a curated catalog
 * Volume prescription:
-
-    * Sets, reps, rest time
+  * Sets, reps, rest time
 * Load recommendations:
-
-    * Based on previous training history
-    * Progressive overload with safety clamping
+  * Based on previous training history
+  * Progressive overload with safety clamping
 * Workout logging:
-
-    * Reps and load per set
+  * Reps and load per set
 * PostgreSQL persistence
 * Fully Dockerized development environment
 
@@ -133,14 +129,38 @@ This will:
 
 Once the application is running, you will interact with it entirely through the terminal.
 
+### Authentication
+
+At startup, the application asks you to either:
+
+- **Register a new account**
+- **Login with an existing account**
+_(there is a default user available with email goat@gmail.com and password 12346578)_
+
+During registration, you provide:
+- Name
+- Email
+- Password
+
+After logging in for the first time, you are asked to configure your training profile.
+
+### Profile Setup
+
+The profile setup includes:
+- Experience level (beginner / intermediate / advanced)
+- Training frequency (3, 4, or 6 days per week)
+- Training split (automatically chosen or selected for 6-day plans)
+
+The profile is saved and reused on future logins.
+
 ### Main Menu
 
-At startup, the application presents a simple menu:
+After login, the application shows the main menu:
 
 - Generate today’s workout
 - Log the last generated workout
+- Logout
 - Exit
-
 
 ### Generating a Workout
 
