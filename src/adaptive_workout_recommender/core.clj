@@ -4,7 +4,9 @@
     [clojure.string :as str]
     [adaptive-workout-recommender.persistence.db :as db]
     [adaptive-workout-recommender.service.generate :as gen-svc]
-    [adaptive-workout-recommender.persistence.exercises :as ex-repo]))
+    [adaptive-workout-recommender.persistence.exercises :as ex-repo]
+    [adaptive-workout-recommender.service.auth :as auth]
+    [adaptive-workout-recommender.persistence.profiles :as p-repo]))
 
 (defn- prompt
   [s]
@@ -18,11 +20,24 @@
     (Integer/parseInt (str/trim s))
     (catch Exception _ nil)))
 
-(defn- parse-double
+(defn- parse-double*
   [s]
   (try
     (Double/parseDouble (str/trim s))
     (catch Exception _ nil)))
+
+(defn- prompt-nonblank
+  [label]
+  (loop []
+    (let [v (-> (prompt label) str/trim)]
+      (if (seq v)
+        v
+        (do (println "Please enter a value.")
+            (recur))))))
+
+(defn- prompt-password
+  []
+  (prompt-nonblank "Password: "))
 
 (defn- prompt-int-in-range
   [label minv maxv]
@@ -30,16 +45,16 @@
     (let [v (parse-int (prompt (format "%s (%d-%d): " label minv maxv)))]
       (if (and v (<= minv v maxv))
         v
-        (do (println "   Please enter a valid number in range.")
+        (do (println "Please enter a valid number in range.")
             (recur))))))
 
 (defn- prompt-double-min
   [label minv]
   (loop []
-    (let [v (parse-double (prompt (format "%s (>= %.1f): " label (double minv))))]
+    (let [v (parse-double* (prompt (format "%s (>= %.1f): " label (double minv))))]
       (if (and v (>= v minv))
         v
-        (do (println "   Please enter a valid number.")
+        (do (println "Please enter a valid number.")
             (recur))))))
 
 (defn- prompt-nutrition
@@ -51,9 +66,10 @@
         "deficit" :deficit
         "neutral" :neutral
         "bulk"    :bulk
-        (do (println "   Please type: deficit, neutral, or bulk.")
+        (do (println "Please type: deficit, neutral, or bulk.")
             (recur))))))
 
+(defn- hr [] (println "----------------------------------------"))
 (defn- title-case
   [kw]
   (-> kw name (str/replace "-" " ") (str/split #"\s+")
@@ -68,13 +84,8 @@
 
 (defn- fmt-load
   [x]
-  (if (and x (pos? (double x)))
-    (format "%.2f" (double x))
-    nil))
-
-(defn- hr
-  []
-  (println "----------------------------------------"))
+  (when (and x (pos? (double x)))
+    (format "%.2f" (double x))))
 
 (defn- print-workout
   [exercise-by-id {:keys [workout-id template sequence-index exercises]}]
@@ -83,8 +94,7 @@
   (println (format "Workout #%d — %s (sequence %d)"
                    workout-id (title-case template) sequence-index))
   (hr)
-  (println "Here’s today’s plan:")
-  (println)
+  (println "Here’s today’s plan:\n")
 
   (doseq [[i ex] (map-indexed vector exercises)]
     (let [eid (:exercise-id ex)
@@ -99,31 +109,21 @@
                        (:reps ex)
                        (if load-str (str " @ " load-str) " @ (choose a weight)")
                        (:rest-seconds ex)))
-      (when (nil? load-str)
+      (when-not load-str
         (println "   How to choose: pick a weight where the last 1–2 reps feel hard, but form stays clean."))
       (println)))
 
-  (println "Tip: After training, choose option 2 to log what you actually did.")
+  (println "After training, choose option 2 to log what you actually did.")
   (println))
 
-(defn- fetch-default-user+profile
-  [ds]
-  (let [row (first (db/query! ds
-                              ["SELECT u.id AS user_id,
-                                      p.experience,
-                                      p.days_per_week,
-                                      p.split
-                               FROM users u
-                               JOIN profiles p ON p.user_id = u.id
-                               WHERE u.name = 'default'
-                               ORDER BY p.created_at DESC
-                               LIMIT 1"]))]
-
-    (when row
-      {:user-id (:user_id row)
-       :profile {:profile/experience (keyword (:experience row))
-                 :profile/split (keyword (:split row))
-                 :profile/days-per-week (:days_per_week row)}})))
+(defn- prompt-readiness
+  []
+  (println)
+  (println "Quick check-in (helps adjust today's training):")
+  {:stress    (prompt-int-in-range "Stress level (1 = calm, 10 = overwhelmed)" 1 10)
+   :fatigue   (prompt-int-in-range "Fatigue level (1 = fresh, 10 = exhausted)" 1 10)
+   :sleep     (prompt-int-in-range "Sleep last night (hours)" 1 8)
+   :nutrition (prompt-nutrition)})
 
 (defn- log-workout!
   [ds user-id exercise-by-id workout]
@@ -152,68 +152,159 @@
     (println "Next time you generate a workout, the app will use this history to recommend loads.")
     true))
 
-(defn- prompt-readiness
+(defn- auth-menu!
+  [ds]
+  (loop []
+    (println "\nWelcome")
+    (println "  1) Login")
+    (println "  2) Register")
+    (println "  3) Exit")
+    (case (str/trim (prompt "> "))
+      "1" (let [email (-> (prompt-nonblank "Email: ") str/lower-case)
+                password (prompt-password)
+                res (auth/login ds {:email email :password password})]
+            (if (:ok res)
+              (do (println (format "\nLogged in as %s" (get-in res [:user :name])))
+                  (:user res))
+              (do (println (str "\n" (:error res)))
+                  (recur))))
+
+      "2" (let [name (prompt-nonblank "Name: ")
+                email (-> (prompt-nonblank "Email: ") str/lower-case)
+                password (prompt-password)
+                res (auth/register! ds {:name name :email email :password password})]
+            (if (:ok res)
+              (do (println "\nAccount created. Please login.")
+                  (recur))
+              (do (println (str "\n" (:error res)))
+                  (recur))))
+
+      "3" nil
+      (do (println "Invalid option.")
+          (recur)))))
+
+(defn- prompt-experience
   []
-  (println)
-  (println "Quick check-in (helps adjust today's training):")
-  {:stress   (prompt-int-in-range "Stress level (1 = calm, 10 = overwhelmed)" 1 10)
-   :fatigue  (prompt-int-in-range "Fatigue level (1 = fresh, 10 = exhausted)" 1 10)
-   :sleep    (prompt-int-in-range "Sleep last night (hours)" 1 8)
-   :nutrition (prompt-nutrition)})
+  (loop []
+    (println "\nChoose experience level:")
+    (println "  1) Beginner")
+    (println "  2) Intermediate")
+    (println "  3) Advanced")
+    (case (str/trim (prompt "> "))
+      "1" :beginner
+      "2" :intermediate
+      "3" :advanced
+      (do (println "Please choose 1, 2, or 3.")
+          (recur)))))
+
+(defn- prompt-days-per-week
+  []
+  (loop []
+    (println "\nHow many days per week do you want to train?")
+    (println "  1) 3 days")
+    (println "  2) 4 days")
+    (println "  3) 6 days")
+    (case (str/trim (prompt "> "))
+      "1" 3
+      "2" 4
+      "3" 6
+      (do (println "Please choose 1, 2, or 3.")
+          (recur)))))
+
+(defn- split-from-days
+  [days]
+  (case days
+    3 :full-body
+    4 :upper-lower
+    6 :needs-choice))
+
+(defn- prompt-6day-split
+  []
+  (loop []
+    (println "\nFor 6 days per week, choose a split:")
+    (println "  1) PPL (Push / Pull / Legs)")
+    (println "  2) Bro split (body-part days)")
+    (case (str/trim (prompt "> "))
+      "1" :ppl
+      "2" :bro
+      (do (println "Please choose 1 or 2.")
+          (recur)))))
+
+(defn- configure-profile!
+  "Prompts the user and creates a profile row in DB. Returns the profile map in generator format."
+  [ds user-id]
+  (println "\nLet’s set up your training profile.")
+  (let [experience (prompt-experience)
+        days (prompt-days-per-week)
+        split (let [s (split-from-days days)]
+                (if (= s :needs-choice) (prompt-6day-split) s))
+        _ (p-repo/create-profile! ds {:user-id user-id
+                                      :experience experience
+                                      :days-per-week days
+                                      :split split})]
+    (println "\nProfile saved!")
+    {:profile/experience experience
+     :profile/split split
+     :profile/days-per-week days}))
+
+
+(defn- load-or-configure-profile!
+  [ds user-id]
+  (if-let [p (p-repo/latest-profile ds user-id)]
+    {:profile/experience (keyword (:experience p))
+     :profile/split (keyword (:split p))
+     :profile/days-per-week (:days_per_week p)}
+    (configure-profile! ds user-id)))
 
 (defn- menu!
-  [ds]
+  [ds user {:keys [profile/experience profile/split profile/days-per-week] :as profile}]
   (println)
   (println "Adaptive Workout Recommender — MVP")
   (println "========================================")
+  (println (format "User: %s (%s)" (:name user) (:email user)))
+  (println (format "Profile: %s | Split: %s | Days/week: %d"
+                   (title-case experience)
+                   (title-case split)
+                   days-per-week))
 
-  (let [exercise-by-id (ex-repo/exercise-map ds)
-        {:keys [user-id profile]} (or (fetch-default-user+profile ds)
-                                      (do
-                                        (println)
-                                        (println "Default user/profile not found.")
-                                        (println "Please seed the default user and profile, then run again.")
-                                        nil))]
-    (when (and user-id profile)
+  (let [exercise-by-id (ex-repo/exercise-map ds)]
+    (loop [last-workout nil]
       (println)
-      (println (format "Loaded profile: %s - split: %s"
-                       (title-case (:profile/experience profile))
-                       (title-case (:profile/split profile))))
-      (loop [last-workout nil]
-        (println)
-        (println "What would you like to do?")
-        (println "  1) Generate today's workout")
-        (println "  2) Log the last generated workout")
-        (println "  3) Exit")
-        (case (str/trim (prompt "> "))
-          "1" (let [readiness (prompt-readiness)
-                    workout (gen-svc/generate-and-save-workout!
-                              ds {:user-id user-id
-                                  :profile profile
-                                  :readiness readiness})]
-                (print-workout exercise-by-id workout)
-                (recur workout))
+      (println "What would you like to do?")
+      (println "  1) Generate today's workout")
+      (println "  2) Log the last generated workout")
+      (println "  3) Logout")
+      (println "  4) Exit")
+      (case (str/trim (prompt "> "))
+        "1" (let [readiness (prompt-readiness)
+                  workout (gen-svc/generate-and-save-workout!
+                            ds {:user-id (:id user)
+                                :profile profile
+                                :readiness readiness})]
+              (print-workout exercise-by-id workout)
+              (recur workout))
 
-          "2" (do
-                (if last-workout
-                  (do (log-workout! ds user-id exercise-by-id last-workout)
-                      (recur last-workout))
-                  (do (println)
-                      (println "You haven’t generated a workout yet.")
-                      (println "Choose option 1 first.")
-                      (recur last-workout))))
+        "2" (if last-workout
+              (do (log-workout! ds (:id user) exercise-by-id last-workout)
+                  (recur last-workout))
+              (do (println "\nYou haven’t generated a workout yet. Choose option 1 first.")
+                  (recur last-workout)))
 
-          "3" (do
-                (println)
-                (println "Bye")
-                nil)
+        "3" :logout
+        "4" (do (println "\nBye") :exit)
 
-          (do
-            (println)
-            (println "Unknown option. Please choose 1, 2, or 3.")
-            (recur last-workout)))))))
+        (do (println "\nUnknown option. Please choose 1, 2, 3, or 4.")
+            (recur last-workout))))))
 
 (defn -main
   [& _args]
   (let [ds (db/datasource)]
-    (menu! ds)))
+    (loop []
+      (if-let [user (auth-menu! ds)]
+        (let [profile (load-or-configure-profile! ds (:id user))
+              result (menu! ds user profile)]
+          (case result
+            :logout (do (println "\nLogged out.") (recur))
+            :exit nil
+            (recur)))
+        (println "Bye")))))
