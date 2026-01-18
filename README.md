@@ -223,7 +223,6 @@ resources/
 
 This MVP intentionally omits:
 
-* Authentication / multiple users
 * Web or mobile UI
 * Injury or equipment constraints
 * RIR tracking
