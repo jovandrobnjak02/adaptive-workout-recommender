@@ -14,7 +14,7 @@ This project is an MVP built primarily for learning experimentation. It focuses 
 
 It is **not** intended to be a production-ready fitness application.
 
-## Current Features (MVP Scope)
+## Current Features
 
 * Interactive terminal-based CLI
 * User registration and login
