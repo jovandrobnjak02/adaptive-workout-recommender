@@ -71,10 +71,19 @@
 
 (defn- hr [] (println "----------------------------------------"))
 (defn- title-case
-  [kw]
-  (-> kw name (str/replace "-" " ") (str/split #"\s+")
-      (->> (map #(str (str/upper-case (subs % 0 1)) (subs % 1))))
-      (str/join " ")))
+  [x]
+  (let [s (cond
+            (keyword? x) (name x)
+            (string? x)  x
+            :else        (str x))]
+    (->> (str/split (str/replace s "-" " ") #"\s+")
+         (remove str/blank?)
+         (map (fn [w]
+                (if (empty? w)
+                  ""
+                  (str (str/upper-case (subs w 0 1))
+                       (subs w 1)))))
+         (str/join " "))))
 
 (defn- fmt-muscles
   [{:keys [main-muscle secondary-muscle]}]
