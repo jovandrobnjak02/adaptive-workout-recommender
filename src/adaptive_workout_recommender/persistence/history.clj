@@ -3,7 +3,6 @@
     [adaptive-workout-recommender.persistence.db :as db]))
 
 (defn last-performance-by-exercise
-  "Returns {exercise-id {:last-load x :days-since-last n}} for a user."
   [ds user-id]
   (let [rows (db/query! ds
                         ["SELECT DISTINCT ON (exercise_id)
