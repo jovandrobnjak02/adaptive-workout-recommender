@@ -205,14 +205,7 @@ resources/
 
 ## Project Status & Limitations
 
-This MVP intentionally omits:
-
-* Web or mobile UI
-* Injury or equipment constraints
-* RIR tracking
-* Deload logic
-* Missed workout adaptation
-* Periodization blocks
+This MVP intentionally does not include: web or mobile ui, injury or equipment constraint, RIR tracking, deload logic, missed workout adaptation, periodization blocks and other advanced workout concepts (more on that in the wiki)
 
 These are documented as future improvements in the Wiki.
 
